@@ -21,7 +21,43 @@
 	},
 
 	"project-settings": [
-	]
+		{
+			"key": "record_id",
+			"name": "Record ID Field (first field)",
+			"required": true,
+			"type": "field-list"
+		},
+		{
+			"key": "first_name",
+			"name": "First name/initial field",
+			"required": true,
+			"type": "field-list"
+		},
+		{
+			"key": "last_name",
+			"name": "Last name/initial field",
+			"required": true,
+			"type": "field-list"
+		},
+		{
+			"key": "citations",
+			"name": "Citations field",
+			"required": true,
+			"type": "field-list"
+		},
+		{
+			"key": "helper",
+			"name": "Helper text field (can be @HIDDEN)",
+			"required": true,
+			"type": "field-list"
+		},
+		{
+			"key": "institution",
+			"name": "Institution to search for (use short name like Vanderbilt, not a long name; do not use initials)",
+			"required": true,
+			"type": "text"
+		}
+	],
 
 	"crons": [
 		{
