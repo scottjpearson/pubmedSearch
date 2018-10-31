@@ -1,0 +1,35 @@
+{
+	"name": "PubMed Search",
+
+	"namespace": "Vanderbilt\\PubmedSearchExternalModule",
+
+	"description": "This module takes last_name and first_name fields and downloads all PubMed entries for that name. It puts the PubMed entries into another REDCap field. It also requires one helper text field. It checks PubMed once a day for new entries. Because of inaccuracies of the process, it is recommended that human eyes manually oversee the download process.",
+
+	"authors": [
+		{
+			"name": "Scott J. Pearson",
+			"email": "datacore@vumc.org",
+			"institution": "Vanderbilt University Medical Center"
+		}
+	],
+
+	
+	"permissions": [
+	],
+
+	"links": {
+	},
+
+	"project-settings": [
+	]
+
+	"crons": [
+		{
+			"cron_name": "pubmed_cron",
+			"cron_description": "PubMed Cron",
+			"method": "pubmed",
+			"cron_frequency": "86400",
+			"cron_max_run_time": "7200"
+		}
+	],
+}
