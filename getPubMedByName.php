@@ -122,6 +122,7 @@ function getPubMed($firstName, $lastName, $institution, $prevCitations, $citatio
 			if ($article->AuthorList->Author) {
 				foreach ($article->AuthorList->Author as $authorXML) {
 					$author = $authorXML->LastName." ".$authorXML->Initials;
+					# " " is if no LastName and no Initials in the line above
 					if ($author != " ") {
 						$authors[] = $author;
 					} else {

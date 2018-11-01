@@ -47,7 +47,7 @@
 		},
 		{
 			"key": "helper",
-			"name": "Helper text field (can be @HIDDEN)",
+			"name": "Helper text field (can be @HIDDEN) that stores which PubMed Ids are downloaded.",
 			"required": true,
 			"type": "field-list"
 		},
