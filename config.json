@@ -67,5 +67,5 @@
 			"cron_frequency": "86400",
 			"cron_max_run_time": "7200"
 		}
-	],
+	]
 }
