@@ -20,9 +20,9 @@
 	"links": {
 		"project": [
 			{
-				"name": "Career Development Tracker",
+				"name": "PubMed test",
 				"icon": "report",
-				"url": "index.php"
+				"url": "test.php"
 			}
 		]
 	},
