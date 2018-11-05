@@ -6,7 +6,7 @@ use ExternalModules\ExternalModules;
 
 class PubmedSearchExternalModule extends AbstractExternalModule
 {
-	public function pubmed($project_id) {
+	public function pubmed($pid) {
 		error_log("PubmedSearchExternalModule::pubmed with $pid");
 		# field names
 		$firstName = $this->getProjectSetting("first_name", $pid);
@@ -24,7 +24,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		array_push($fields, $helper);
 		array_push($fields, $recordId);
 
-		$json = \REDCap::getData($project_id, "json", NULL, $fields);
+		$json = \REDCap::getData($pid, "json", NULL, $fields);
 		$data = json_decode($json, true);
 
 		# organize the data
@@ -92,10 +92,10 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		}
 
 		if (!empty($uploadCitations)) {
-			$feedback = \REDCap::saveData($project_id, "json", json_encode($uploadCitations));
+			$feedback = \REDCap::saveData($pid, "json", json_encode($uploadCitations));
 		}
 		if (!empty($uploadHelper)) {
-			$feedback = \REDCap::saveData($project_id, "json", json_encode($uploadHelper));
+			$feedback = \REDCap::saveData($pid, "json", json_encode($uploadHelper));
 		}
 	}
 
