@@ -6,8 +6,31 @@ use ExternalModules\ExternalModules;
 
 class PubmedSearchExternalModule extends AbstractExternalModule
 {
-	public function pubmed($pid) {
-		error_log("PubmedSearchExternalModule::pubmed with ".json_encode($pid));
+        public function getPids() {
+	       $sql="SELECT DISTINCT(s.project_id) AS project_id FROM redcap_external_modules m, redcap_external_module_settings s INNER JOIN redcap_projects AS p ON p.project_id = s.project_id WHERE p.date_deleted IS NULL AND m.external_module_id = s.external_module_id AND s.value = 'true' AND m.directory_prefix = 'pubmedSearch' AND s.`key` = 'installed'";
+	       $q = db_query($sql);
+
+	       if ($error = db_error()) {
+		      error_log("PubmedSearchExternalModule ERROR: $error");
+	       }
+
+	       $pids = array();
+	       while ($row = db_fetch_assoc($q)) {
+		      $pids[] = $row['project_id'];
+	       }
+	       return $pids;
+        }
+
+	public function pubmed() {
+		$pids = $this->getPids();
+		error_log("PubmedSearchExternalModule::pubmed with "json_encode($pids));
+		foreach ($pids as $pid) {
+			$this->pubmedRun($pid);
+		}
+	}
+
+	public function pubmedRun($pid) {
+		error_log("PubmedSearchExternalModule::pubmedRun with $pid");
 		# field names
 		$firstName = $this->getProjectSetting("first_name", $pid);
 		$lastName = $this->getProjectSetting("last_name", $pid);
