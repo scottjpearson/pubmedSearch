@@ -7,7 +7,7 @@ use ExternalModules\ExternalModules;
 class PubmedSearchExternalModule extends AbstractExternalModule
 {
 	public function pubmed($pid) {
-		error_log("PubmedSearchExternalModule::pubmed with $pid");
+		error_log("PubmedSearchExternalModule::pubmed with ".json_encode($pid));
 		# field names
 		$firstName = $this->getProjectSetting("first_name", $pid);
 		$lastName = $this->getProjectSetting("last_name", $pid);
