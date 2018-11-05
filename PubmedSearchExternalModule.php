@@ -23,7 +23,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 
 	public function pubmed() {
 		$pids = $this->getPids();
-		error_log("PubmedSearchExternalModule::pubmed with "json_encode($pids));
+		error_log("PubmedSearchExternalModule::pubmed with ".json_encode($pids));
 		foreach ($pids as $pid) {
 			$this->pubmedRun($pid);
 		}
