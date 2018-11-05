@@ -18,6 +18,13 @@
 	],
 
 	"links": {
+		"project": [
+			{
+				"name": "Career Development Tracker",
+				"icon": "report",
+				"url": "index.php"
+			}
+		]
 	},
 
 	"project-settings": [
