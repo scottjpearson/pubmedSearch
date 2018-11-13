@@ -203,75 +203,83 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 	
 		$citations = array();
 		if (!empty($pmidsUnique)) {
-			$url = "https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/?format=json&ids=".implode(",", $pmidsUnique);
-			$ch = curl_init();
-			curl_setopt($ch, CURLOPT_URL, $url);
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-			curl_setopt($ch, CURLOPT_VERBOSE, 0);
-			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-			curl_setopt($ch, CURLOPT_AUTOREFERER, true);
-			curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
-			curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
-			$output = curl_exec($ch);
-			curl_close($ch);
-			$data = json_decode($output, true);
+			$pullSize = 20;
+			for ($i = 0; $i < count($pmidsUnique); $i += $pullSize) {
+				$pmidsUniquePull = array();
+				for ($j = $i; $j < count($pmidsUnique) && $j < $i + $pullSize; $j++) {
+					array_push($pmidsUniquePull, $pmidsUnique[$j]);
+				}
+
+				$url = "https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/?format=json&ids=".implode(",", $pmidsUniquePull);
+				$ch = curl_init();
+				curl_setopt($ch, CURLOPT_URL, $url);
+				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+				curl_setopt($ch, CURLOPT_VERBOSE, 0);
+				curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+				curl_setopt($ch, CURLOPT_AUTOREFERER, true);
+				curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
+				curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
+				$output = curl_exec($ch);
+				curl_close($ch);
+				$data = json_decode($output, true);
 	
-			# indexed by PMID
-			$pmcids = array();
-			foreach ($data['records'] as $record) {
-				if ($record['pmid'] && $record['pmcid']) {
-					$pmcids[$record['pmid']] = $record['pmcid'];
-				}
-			}
-			
-			$url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&retmode=xml&id=".implode(",", $pmidsUnique);
-			$ch = curl_init();
-			curl_setopt($ch, CURLOPT_URL, $url);
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-			curl_setopt($ch, CURLOPT_VERBOSE, 0);
-			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-			curl_setopt($ch, CURLOPT_AUTOREFERER, true);
-			curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
-			curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
-			$output = curl_exec($ch);
-			curl_close($ch);
-			$xml = simplexml_load_string($output) or die("Error: Cannot create object ".$url);
-			foreach ($xml->PubmedArticle as $medlineCitation) {
-				$article = $medlineCitation->MedlineCitation->Article;
-				$authors = array();
-				if ($article->AuthorList->Author) {
-					foreach ($article->AuthorList->Author as $authorXML) {
-						$author = $authorXML->LastName." ".$authorXML->Initials;
-						# " " is if no LastName and no Initials in the line above
-						if ($author != " ") {
-							$authors[] = $author;
-						} else {
-							$authors[] = $authorXML->CollectiveName;
-						}
+				# indexed by PMID
+				$pmcids = array();
+				foreach ($data['records'] as $record) {
+					if ($record['pmid'] && $record['pmcid']) {
+						$pmcids[$record['pmid']] = $record['pmcid'];
 					}
-				} 
-				$title = preg_replace("/\.$/", "", $article->ArticleTitle);
-				$journal = preg_replace("/\.$/", "", $article->Journal->ISOAbbreviation);
-				$issue = $article->Journal->JournalIssue;
-				$date = $issue->PubDate->Year." ".$issue->PubDate->Month;
-				if ($issue->PubDate->Day) {
-					$date = $date." ".$issue->PubDate->Day;
 				}
-				$journalIssue = $issue->Volume."(".$issue->Issue."):".$article->Journal->ISSN;
-				$pmid = $medlineCitation->MedlineCitation->PMID;
-				$pubmed = "PubMed PMID: ".$pmid;
-				$pmc = "";
-				if (isset($pmcids["$pmid"])) {
-					$pmc = $pmcids["$pmid"].". ";
+				
+				$url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&retmode=xml&id=".implode(",", $pmidsUniquePull);
+				$ch = curl_init();
+				curl_setopt($ch, CURLOPT_URL, $url);
+				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+				curl_setopt($ch, CURLOPT_VERBOSE, 0);
+				curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+				curl_setopt($ch, CURLOPT_AUTOREFERER, true);
+				curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
+				curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
+				$output = curl_exec($ch);
+				curl_close($ch);
+				$xml = simplexml_load_string($output) or die("Error: Cannot create object ".$url);
+				foreach ($xml->PubmedArticle as $medlineCitation) {
+					$article = $medlineCitation->MedlineCitation->Article;
+					$authors = array();
+					if ($article->AuthorList->Author) {
+						foreach ($article->AuthorList->Author as $authorXML) {
+							$author = $authorXML->LastName." ".$authorXML->Initials;
+							# " " is if no LastName and no Initials in the line above
+							if ($author != " ") {
+								$authors[] = $author;
+							} else {
+								$authors[] = $authorXML->CollectiveName;
+							}
+						}
+					} 
+					$title = preg_replace("/\.$/", "", $article->ArticleTitle);
+					$journal = preg_replace("/\.$/", "", $article->Journal->ISOAbbreviation);
+					$issue = $article->Journal->JournalIssue;
+					$date = $issue->PubDate->Year." ".$issue->PubDate->Month;
+					if ($issue->PubDate->Day) {
+						$date = $date." ".$issue->PubDate->Day;
+					}
+					$journalIssue = $issue->Volume."(".$issue->Issue."):".$article->Journal->ISSN;
+					$pmid = $medlineCitation->MedlineCitation->PMID;
+					$pubmed = "PubMed PMID: ".$pmid;
+					$pmc = "";
+					if (isset($pmcids["$pmid"])) {
+						$pmc = $pmcids["$pmid"].". ";
+					}
+					$citation = implode(",", $authors);
+					if ($citation) {
+						$citation .= ". ";
+					}
+					$citation .= $title.". ".$journal.". ".$date.";".$journalIssue.". ".$pmc.$pubmed.".";
+					$citations[] = $citation;
 				}
-				$citation = implode(",", $authors);
-				if ($citation) {
-					$citation .= ". ";
-				}
-				$citation .= $title.". ".$journal.". ".$date.";".$journalIssue.". ".$pmc.$pubmed.".";
-				$citations[] = $citation;
 			}
 		}
 		$newCitationIds = array_merge($prevCitations, $pmidsUnique);
