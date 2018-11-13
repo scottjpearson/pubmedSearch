@@ -6,7 +6,7 @@ use ExternalModules\ExternalModules;
 
 class PubmedSearchExternalModule extends AbstractExternalModule
 {
-        public function getPids() {
+	public function getPids() {
 	       $sql="SELECT DISTINCT(s.project_id) AS project_id FROM redcap_external_modules m, redcap_external_module_settings s INNER JOIN redcap_projects AS p ON p.project_id = s.project_id WHERE p.date_deleted IS NULL AND m.external_module_id = s.external_module_id AND s.value = 'true' AND m.directory_prefix = 'pubmedSearch' AND s.`key` = 'enabled'";
 	       $q = db_query($sql);
 
@@ -19,7 +19,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		      $pids[] = $row['project_id'];
 	       }
 	       return $pids;
-        }
+	}
 
 	public function pubmed() {
 		$pids = $this->getPids();
@@ -46,9 +46,11 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		array_push($fields, $citations);
 		array_push($fields, $helper);
 		array_push($fields, $recordId);
+		error_log("fields: ".json_encode($fields));
 
 		$json = \REDCap::getData($pid, "json", NULL, $fields);
 		$data = json_decode($json, true);
+		error_log("Got ".count($data)." rows of data from REDCap");
 
 		# organize the data
 		$dataRows = array();
@@ -58,6 +60,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 			}
 			array_push($dataRows[$row[$recordId]], $row);
 		}
+		error_log("Data organized");
 
 		# read in the data into data structures
 		$names = array();
@@ -84,6 +87,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 				array_push($names, $ary);
 			}
 		}
+		error_log("Retrieved ".count($names)." names");
 
 		# process the data
 		$uploadHelper = array();
@@ -96,6 +100,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 						$values[$citations],
 						$citations,
 						$helper);
+			error_log("Got PubMed");
 
 			# process these separately because could be on different instruments
 			if ($row && $row[$helper]) {
@@ -123,6 +128,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 	}
 
 	public static function getPubMed($firstName, $lastName, $institution, $prevCitations, $citationsStr, $citationField, $citationIdField) {
+		error_log("getPubMed");
 		$redcapData = json_decode($output, true);
 	
 		$cs = explode("\n", $citationsStr);
@@ -140,7 +146,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		if (count($lastNames) > 1) {
 			$lastNames[] = strtolower($firstName);
 		}
-		
+
 		$firstNames = preg_split("/[\s\-]+/", strtolower($row['identifier_first_name']));;
 		$firstInitials = array();
 		$i = 0;
@@ -151,9 +157,9 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 			$firstInitials[] = substr($firstName, 0, 1);
 			$i++;
 		}
-	
+
 		$institutions = preg_split("/\s*,\s*/", $institution);
-	
+
 		$pmids = array();
 		foreach ($lastNames as $lastName) {
 			foreach ($firstNames as $firstName) {
@@ -190,6 +196,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 				}
 			}
 		}
+		error_log("Got ".count($pmids)." pmids");
 			
 		# convert to pubmed id (pmid) from pubmed central id (pmcid)
 		$pmidsUnique = array();
@@ -200,16 +207,19 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		}
 		$total += count($pmids);
 		$totalNew += count($pmidsUnique);
+		error_log("Got ".count($pmidsUnique)." unique pmids");
 	
 		$citations = array();
 		if (!empty($pmidsUnique)) {
 			$pullSize = 20;
 			for ($i = 0; $i < count($pmidsUnique); $i += $pullSize) {
+				error_log("Pull ".$i);
 				$pmidsUniquePull = array();
 				for ($j = $i; $j < count($pmidsUnique) && $j < $i + $pullSize; $j++) {
 					array_push($pmidsUniquePull, $pmidsUnique[$j]);
 				}
 
+				error_log("CURL 1");
 				$url = "https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/?format=json&ids=".implode(",", $pmidsUniquePull);
 				$ch = curl_init();
 				curl_setopt($ch, CURLOPT_URL, $url);
@@ -232,7 +242,8 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 					}
 				}
 				
-				$url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&retmode=xml&id=".implode(",", $pmidsUniquePull);
+				error_log("CURL 2 of ".count($pmcids)." PMCIDs");
+				$url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&retmode=xml&id=".implode(",", $pmcids);
 				$ch = curl_init();
 				curl_setopt($ch, CURLOPT_URL, $url);
 				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -282,11 +293,19 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 				}
 			}
 		}
+		error_log("Found ".count($citations)." citations");
 		$newCitationIds = array_merge($prevCitations, $pmidsUnique);
 		$uploadRow = array(
-					$citationIdField => json_encode_with_spaces($newCitationIds),
+					$citationIdField => self::json_encode_with_spaces($newCitationIds),
 					$citationField => implode("\n", $citations),
 				);
+		error_log("Returning uploadRow");
 		return $uploadRow;
+	}
+
+	private static function json_encode_with_spaces($data) {
+		$str = json_encode($data);
+		$str = preg_replace("/,/", ", ", $str);
+		return $str;
 	}
 }
