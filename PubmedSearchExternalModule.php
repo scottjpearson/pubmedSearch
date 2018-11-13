@@ -196,7 +196,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 				}
 			}
 		}
-		error_log("Got ".count($pmids)." pmids");
+		error_log("Got ".count($pmids)." pmids for ".json_encode($lastNames).", ".json_encode($firstNames)." at ".json_encode($institutions));
 			
 		# convert to pubmed id (pmid) from pubmed central id (pmcid)
 		$pmidsUnique = array();
@@ -213,13 +213,12 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		if (!empty($pmidsUnique)) {
 			$pullSize = 20;
 			for ($i = 0; $i < count($pmidsUnique); $i += $pullSize) {
-				error_log("Pull ".$i);
+				// error_log("Pull ".$i);
 				$pmidsUniquePull = array();
 				for ($j = $i; $j < count($pmidsUnique) && $j < $i + $pullSize; $j++) {
 					array_push($pmidsUniquePull, $pmidsUnique[$j]);
 				}
 
-				error_log("CURL 1");
 				$url = "https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/?format=json&ids=".implode(",", $pmidsUniquePull);
 				$ch = curl_init();
 				curl_setopt($ch, CURLOPT_URL, $url);
