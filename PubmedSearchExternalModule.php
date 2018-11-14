@@ -188,9 +188,9 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 
 		$pmidsUnique = array();
 		foreach ($pmids as $pmid) {
-			// if (!in_array($pmid, $prevCitations)) {
+			if (!in_array($pmid, $prevCitations)) {
 				$pmidsUnique[] = $pmid;
-			// }
+			}
 		}
 		$total += count($pmids);
 		$totalNew += count($pmidsUnique);
@@ -283,8 +283,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		foreach ($citations as $citation) {
 			error_log($citation);
 		}
-		// $newCitationIds = array_merge($prevCitations, $pmidsUnique);
-		$newCitationIds = $pmidsUnique;
+		$newCitationIds = array_merge($prevCitations, $pmidsUnique);
 		$uploadRow = array(
 					$citationIdField => self::json_encode_with_spaces($newCitationIds),
 					$citationField => implode("\n", $citations),
