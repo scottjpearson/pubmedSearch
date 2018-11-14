@@ -104,7 +104,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 
 			# process these separately because could be on different instruments
 			if ($row && $row[$helper] && $row[$citations]) {
-				array_push($uploadHelper,  array(	"recordId" => $values[$recordId],
+				array_push($uploadHelper,  array(	$recordId => $values[$recordId],
 									$helper => $row[$helper],
 									$citations => $row[$citations],
 								));
