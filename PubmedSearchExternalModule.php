@@ -95,7 +95,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		foreach ($names as $values) {
 			$row = self::getPubMed(	$values[$firstName],
 						$values[$lastName],
-						$values[$institutions],
+						$institutions,
 						json_decode($values[$helper]),
 						$values[$citations],
 						$citations,
@@ -150,7 +150,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 			$lastNames[] = strtolower($firstName);
 		}
 
-		$firstNames = preg_split("/[\s\-]+/", strtolower($row['identifier_first_name']));;
+		$firstNames = preg_split("/[\s\-]+/", strtolower($firstName);;
 		$firstInitials = array();
 		$i = 0;
 		foreach ($firstNames as $firstName) {
