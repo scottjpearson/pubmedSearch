@@ -280,6 +280,9 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 			}
 		}
 		error_log("Found ".count($citations)." citations");
+		foreach ($citations as $citation) {
+			error_log($citation);
+		}
 		// $newCitationIds = array_merge($prevCitations, $pmidsUnique);
 		$newCitationIds = $pmidsUnique;
 		$uploadRow = array(
