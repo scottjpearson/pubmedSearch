@@ -150,7 +150,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 			$lastNames[] = strtolower($firstName);
 		}
 
-		$firstNames = preg_split("/[\s\-]+/", strtolower($firstName);;
+		$firstNames = preg_split("/[\s\-]+/", strtolower($firstName));
 		$firstInitials = array();
 		$i = 0;
 		foreach ($firstNames as $firstName) {
