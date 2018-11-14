@@ -118,12 +118,15 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 								));
 			}
 		}
+		error_log("Done with ".count($names)." names");
 
 		if (!empty($uploadCitations)) {
 			$feedback = \REDCap::saveData($pid, "json", json_encode($uploadCitations));
+			error_log("uploadCitations: ".json_encode($feedback));
 		}
 		if (!empty($uploadHelper)) {
 			$feedback = \REDCap::saveData($pid, "json", json_encode($uploadHelper));
+			error_log("uploadHelper: ".json_encode($feedback));
 		}
 	}
 
