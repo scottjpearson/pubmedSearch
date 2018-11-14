@@ -48,13 +48,13 @@
 		},
 		{
 			"key": "citations",
-			"name": "Citations field",
+			"name": "Citations field (Must be on non-repeatable form/event)",
 			"required": true,
 			"type": "field-list"
 		},
 		{
 			"key": "helper",
-			"name": "Helper text field (can be @HIDDEN) that stores which PubMed Ids are downloaded.",
+			"name": "Helper text field (can be @HIDDEN) that stores which PubMed Ids are downloaded. (Must be on non-repeatable form/event.)",
 			"required": true,
 			"type": "field-list"
 		},

@@ -103,17 +103,9 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 			error_log("Got PubMed");
 
 			# process these separately because could be on different instruments
-			if ($row && $row[$helper]) {
+			if ($row && $row[$helper] && $row[$citations]) {
 				array_push($uploadHelper,  array(	"recordId" => $values[$recordId],
-									"redcap_repeat_instrument" => $helperForm['form'],
-									"redcap_repeat_instance" => $helperForm['instance'],
 									$helper => $row[$helper],
-								));
-			}
-			if ($row && $row[$citations]) {
-				array_push($uploadCitations,  array(	"recordId" => $values[$recordId],
-									"redcap_repeat_instrument" => $citationsForm['form'],
-									"redcap_repeat_instance" => $citationsForm['instance'],
 									$citations => $row[$citations],
 								));
 			}
