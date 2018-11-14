@@ -90,8 +90,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		error_log("Retrieved ".count($names)." names");
 
 		# process the data
-		$uploadHelper = array();
-		$uploadCitations = array();
+		$upload = array();
 		foreach ($names as $values) {
 			$row = self::getPubMed(	$values[$firstName],
 						$values[$lastName],
@@ -100,25 +99,19 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 						$values[$citations],
 						$citations,
 						$helper);
-			error_log("Got PubMed");
 
-			# process these separately because could be on different instruments
 			if ($row && $row[$helper] && $row[$citations]) {
-				array_push($uploadHelper,  array(	$recordId => $values[$recordId],
-									$helper => $row[$helper],
-									$citations => $row[$citations],
-								));
+				array_push($upload,  array(	$recordId => $values[$recordId],
+								$helper => $row[$helper],
+								$citations => $row[$citations],
+							));
 			}
 		}
 		error_log("Done with ".count($names)." names");
 
-		if (!empty($uploadCitations)) {
-			$feedback = \REDCap::saveData($pid, "json", json_encode($uploadCitations));
-			error_log("uploadCitations: ".json_encode($feedback));
-		}
-		if (!empty($uploadHelper)) {
-			$feedback = \REDCap::saveData($pid, "json", json_encode($uploadHelper));
-			error_log("uploadHelper: ".json_encode($feedback));
+		if (!empty($upload)) {
+			$feedback = \REDCap::saveData($pid, "json", json_encode($upload));
+			error_log("upload: ".json_encode($feedback));
 		}
 	}
 
@@ -192,8 +185,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 			}
 		}
 		error_log("Got ".count($pmids)." pmids for ".json_encode($lastNames).", ".json_encode($firstNames)." at ".json_encode($institutions));
-			
-		# convert to pubmed id (pmid) from pubmed central id (pmcid)
+
 		$pmidsUnique = array();
 		foreach ($pmids as $pmid) {
 			if (!in_array($pmid, $prevCitations)) {
