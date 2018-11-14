@@ -71,7 +71,7 @@
 			"cron_name": "pubmed_cron",
 			"cron_description": "PubMed Cron",
 			"method": "pubmed",
-			"cron_frequency": "60",
+			"cron_frequency": "86400",
 			"cron_max_run_time": "7200"
 		}
 	]
