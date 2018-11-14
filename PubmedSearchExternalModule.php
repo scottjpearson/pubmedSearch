@@ -201,12 +201,12 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 			$pullSize = 200;
 			for ($i = 0; $i < count($pmidsUnique); $i += $pullSize) {
 				// error_log("Pull ".$i);
-				$pmidsUniquePull = array();
+				$pmidsUniqueForPull = array();
 				for ($j = $i; $j < count($pmidsUnique) && $j < $i + $pullSize; $j++) {
-					array_push($pmidsUniquePull, $pmidsUnique[$j]);
+					array_push($pmidsUniqueForPull, $pmidsUnique[$j]);
 				}
 
-				$url = "https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/?format=json&ids=".implode(",", $pmidsUniquePull);
+				$url = "https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0/?format=json&ids=".implode(",", $pmidsUniqueForPull);
 				$ch = curl_init();
 				curl_setopt($ch, CURLOPT_URL, $url);
 				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -229,7 +229,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 				}
 				
 				error_log("CURL 2 of ".count($pmcids)." PMCIDs");
-				$url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&retmode=xml&id=".implode(",", $pmcids);
+				$url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&retmode=xml&id=".implode(",", $pmidsUniqueForPull);
 				$ch = curl_init();
 				curl_setopt($ch, CURLOPT_URL, $url);
 				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
