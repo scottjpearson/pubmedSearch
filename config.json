@@ -18,13 +18,6 @@
 	],
 
 	"links": {
-		"project": [
-			{
-				"name": "PubMed test",
-				"icon": "report",
-				"url": "test.php"
-			}
-		]
 	},
 
 	"project-settings": [
