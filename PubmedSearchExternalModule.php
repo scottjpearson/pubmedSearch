@@ -38,6 +38,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		$helper = $this->getProjectSetting("helper", $pid);
 		$recordId = $this->getProjectSetting("record_id", $pid);
 		$institutions = $this->getProjectSetting("institution", $pid);
+		$citationsCount= $this->getProjectSetting("count", $pid);
 
 		# get the first name, last name, citations, and helper
 		$fields = array();
@@ -71,12 +72,6 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 				foreach ($fields as $field) {
 					if ($row[$field]) {
 						$ary[$field] = $row[$field];
-
-						if ($field == $helper) {
-							$helperForm = array("form" => $row['redcap_repeat_instrument'], "instance" => $row['redcap_repeat_instance']);
-						} else if ($field == $citations) {
-							$citationsForm = array("form" => $row['redcap_repeat_instrument'], "instance" => $row['redcap_repeat_instance']);
-						}
 					}
 				}
 			}
@@ -100,6 +95,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 				array_push($upload,  array(	$recordId => $values[$recordId],
 								$helper => $row[$helper],
 								$citations => $row[$citations],
+								$citationsCount => count(explode("\n", $row[$citations])),
 							));
 			}
 		}
