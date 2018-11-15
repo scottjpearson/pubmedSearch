@@ -122,10 +122,13 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		$totalNew = 0;
 		$lastNames = preg_split("/\s*[\s\-]\s*/", strtolower($lastName));
 		if (count($lastNames) > 1) {
-			$lastNames[] = strtolower($firstName);
+			$lastNames[] = strtolower($lastName);
 		}
 
 		$firstNames = preg_split("/[\s\-]+/", strtolower($firstName));
+		if (!in_array($firstName, $firstNames)) {
+			array_push($firstNames, $firstName);
+		}
 		$firstInitials = array();
 		$i = 0;
 		foreach ($firstNames as $firstName) {
