@@ -37,7 +37,8 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		$citations = $this->getProjectSetting("citations", $pid);
 		$helper = $this->getProjectSetting("helper", $pid);
 		$recordId = $this->getProjectSetting("record_id", $pid);
-		$institutions = $this->getProjectSetting("institution", $pid);
+		$defaultInstitution = $this->getProjectSetting("institution", $pid);
+		$institutionFields = $this->getProjectSetting("institution_fields", $pid);
 		$citationsCount= $this->getProjectSetting("count", $pid);
 
 		# get the first name, last name, citations, and helper
@@ -47,6 +48,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		array_push($fields, $citations);
 		array_push($fields, $helper);
 		array_push($fields, $recordId);
+		$fields = array_merge($fields, $institutionFields);
 
 		$json = \REDCap::getData($pid, "json", NULL, $fields);
 		$data = json_decode($json, true);
@@ -68,10 +70,16 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 			# these are default fields that might be blank to begin with
 			# record_id, last_name, and first_name must be filled in
 			$ary = array($citations => "", $helper => "[]");
+			$institutions[$id] = preg_split("/\s*,\s*/", $defaultInstitution);
+
 			foreach ($rows as $row) {
 				foreach ($fields as $field) {
 					if ($row[$field]) {
-						$ary[$field] = $row[$field];
+						if (in_array($field, $institutionFields)) {
+							array_push($institutions[$id], $row[$field]);
+						} else {
+							$ary[$field] = $row[$field];
+						}
 					}
 				}
 			}
@@ -85,7 +93,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		foreach ($names as $values) {
 			$row = self::getPubMed(	$values[$firstName],
 						$values[$lastName],
-						$institutions,
+						$institutions[$id],
 						json_decode($values[$helper]),
 						$values[$citations],
 						$citations,
@@ -106,7 +114,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		}
 	}
 
-	public static function getPubMed($firstName, $lastName, $institution, $prevCitations, $citationsStr, $citationField, $citationIdField) {
+	public static function getPubMed($firstName, $lastName, $institutions, $prevCitations, $citationsStr, $citationField, $citationIdField) {
 		$redcapData = json_decode($output, true);
 	
 		$cs = explode("\n", $citationsStr);
@@ -138,8 +146,6 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 			$firstInitials[] = substr($firstName, 0, 1);
 			$i++;
 		}
-
-		$institutions = preg_split("/\s*,\s*/", $institution);
 
 		$pmids = array();
 		foreach ($lastNames as $lastName) {

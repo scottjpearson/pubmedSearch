@@ -59,8 +59,15 @@
 		},
 		{
 			"key": "institution",
-			"name": "Institution to search for (use short name like Vanderbilt, not a long name; do not use initials)",
+			"name": "Institution to search everyone for (use short name like Vanderbilt, not a long name; do not use initials)",
 			"required": true,
+			"type": "text"
+		},
+		{
+			"key": "institution_fields",
+			"name": "Fields which possibly contain institution information for each record",
+			"required": true,
+			"repeatable": true,
 			"type": "text"
 		}
 	],
