@@ -48,7 +48,11 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		array_push($fields, $citations);
 		array_push($fields, $helper);
 		array_push($fields, $recordId);
-		$fields = array_merge($fields, $institutionFields);
+		foreach ($institutionFields as $institutionField) {
+			if ($institutionField) {
+				array_push($fields, $institutionField);
+			}
+		}
 
 		$json = \REDCap::getData($pid, "json", NULL, $fields);
 		$data = json_decode($json, true);
@@ -70,7 +74,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 			# these are default fields that might be blank to begin with
 			# record_id, last_name, and first_name must be filled in
 			$ary = array($citations => "", $helper => "[]");
-			$institutions[$id] = preg_split("/\s*,\s*/", $defaultInstitution);
+			$institutions[$id] = preg_split("/\s*[,\n]\s*/", $defaultInstitution);
 
 			foreach ($rows as $row) {
 				foreach ($fields as $field) {
