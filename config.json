@@ -68,7 +68,7 @@
 			"name": "Fields which possibly contain institution information for each record",
 			"required": true,
 			"repeatable": true,
-			"type": "text"
+			"type": "field-list"
 		}
 	],
 
