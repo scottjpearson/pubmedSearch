@@ -39,7 +39,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		$recordId = $this->getProjectSetting("record_id", $pid);
 		$defaultInstitution = $this->getProjectSetting("institution", $pid);
 		$institutionFields = $this->getProjectSetting("institution_fields", $pid);
-		$citationsCount= $this->getProjectSetting("count", $pid);
+		$citationsCount = $this->getProjectSetting("count", $pid);
 
 		# get the first name, last name, citations, and helper
 		$fields = array();
