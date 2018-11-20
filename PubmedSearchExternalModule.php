@@ -91,6 +91,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 				array_push($names, $ary);
 			}
 		}
+		error_log("PubmedSearchExternalModule: ".count($names)." names");
 
 		# process the data
 		$upload = array();
@@ -104,13 +105,14 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 						$helper);
 
 			if ($row && $row[$helper] && $row[$citations]) {
-				array_push($upload,  array(	$recordId => $values[$recordId],
+				array_push($upload, array(	$recordId => $values[$recordId],
 								$helper => $row[$helper],
 								$citations => $row[$citations],
 								$citationsCount => count(explode("\n", $row[$citations])),
 							));
 			}
 		}
+		error_log("PubmedSearchExternalModule upload: ".count($upload)." rows");
 
 		if (!empty($upload)) {
 			$feedback = \REDCap::saveData($pid, "json", json_encode($upload));
