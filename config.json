@@ -18,13 +18,6 @@
 	],
 
 	"links": {
-		"project": [
-			{
-				"name": "Sum all citations",
-				"icon": "report",
-				"url": "sum.php"
-			}
-		]
 	},
 
 	"project-settings": [
