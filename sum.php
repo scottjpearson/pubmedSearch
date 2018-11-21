@@ -4,7 +4,7 @@ require_once(dirname(__FILE__)."/../../redcap_connect.php");
 $pid = 85820;
 
 $json = \REDCap::getData($pid, "json", NULL, array("record_id", "citations"));
-$data = json_decode($json);
+$data = json_decode($json, true);
 
 $upload = array();
 foreach ($data as $row) {
