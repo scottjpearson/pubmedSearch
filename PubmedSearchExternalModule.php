@@ -87,7 +87,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 					}
 				}
 			}
-			if (count($ary) == count($fields)) {
+			if (count($ary) > 2) {
 				array_push($names, $ary);
 			}
 		}
