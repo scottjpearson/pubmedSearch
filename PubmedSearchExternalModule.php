@@ -202,7 +202,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 	
 		$citations = array();
 		if (!empty($pmidsUnique)) {
-			$pullSize = 200;
+			$pullSize = 10;
 			for ($i = 0; $i < count($pmidsUnique); $i += $pullSize) {
 				$pmidsUniqueForPull = array();
 				for ($j = $i; $j < count($pmidsUnique) && $j < $i + $pullSize; $j++) {
@@ -243,7 +243,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 				curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
 				$output = curl_exec($ch);
 				curl_close($ch);
-				$xml = simplexml_load_string($output) or die("Error: Cannot create object ".$url);
+				$xml = simplexml_load_string(utf8_encode($output)) or die("Error: Cannot create object ".$url);
 				foreach ($xml->PubmedArticle as $medlineCitation) {
 					$article = $medlineCitation->MedlineCitation->Article;
 					$authors = array();
