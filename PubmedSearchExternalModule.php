@@ -243,7 +243,10 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 				curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
 				$output = curl_exec($ch);
 				curl_close($ch);
-				$xml = simplexml_load_string(utf8_encode($output)) or die("Error: Cannot create object (".count($output)." bytes) from ".$url);
+				$xml = simplexml_load_string(utf8_encode($output));
+				if (!$xml) {
+					throws new Exception("Error: Cannot create object (".count($output)." bytes) from ".$url);
+				}
 				foreach ($xml->PubmedArticle as $medlineCitation) {
 					$article = $medlineCitation->MedlineCitation->Article;
 					$authors = array();
