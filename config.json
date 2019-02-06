@@ -18,6 +18,13 @@
 	],
 
 	"links": {
+		"project": [
+	    		{
+				"name": "Test",
+				"icon": "report",
+				"url": "test3.php"
+	    		}
+    		]
 	},
 
 	"project-settings": [
