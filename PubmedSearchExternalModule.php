@@ -4,6 +4,8 @@ namespace Vanderbilt\PubmedSearchExternalModule;
 use ExternalModules\AbstractExternalModule;
 use ExternalModules\ExternalModules;
 
+define('SLEEP_TIME', 400);
+
 class PubmedSearchExternalModule extends AbstractExternalModule
 {
 	public function getPids() {
@@ -170,6 +172,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 					curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
 					$output = curl_exec($ch);
 					curl_close($ch);
+					usleep(SLEEP_TIME);
 	
 					$pmData = json_decode($output, true);
 					if ($pmData['esearchresult'] && $pmData['esearchresult']['idlist']) {
@@ -221,6 +224,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 				curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
 				$output = curl_exec($ch);
 				curl_close($ch);
+				usleep(SLEEP_TIME);
 				$data = json_decode($output, true);
 	
 				# indexed by PMID
