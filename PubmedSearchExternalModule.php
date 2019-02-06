@@ -249,7 +249,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 				curl_close($ch);
 				$xml = simplexml_load_string(utf8_encode($output));
 				if (!$xml) {
-					throw new \Exception("Error: Cannot create object (".count($output)." bytes) from ".$url);
+					throw new \Exception("Error: Cannot create object (".json_encode($output).") from ".$url);
 				}
 				foreach ($xml->PubmedArticle as $medlineCitation) {
 					$article = $medlineCitation->MedlineCitation->Article;
