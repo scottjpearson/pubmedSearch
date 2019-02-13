@@ -206,6 +206,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		}
 		$total += count($pmids);
 		$totalNew += count($pmidsUnique);
+		error_log("PubmedSearchExternalModule Got ".count($pmids)." pmids and ".count($pmidsUnique)." unique; prevCitations ".json_encode($prevCitations));
 	
 		$citations = array();
 		if (!empty($pmidsUnique)) {
