@@ -294,6 +294,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 					$citationIdField => self::json_encode_with_spaces($newCitationIds),
 					$citationField => implode("\n", $citations),
 				);
+		error_log("PubmedSearchExternalModule returning ".json_encode($uploadRow));
 		return $uploadRow;
 	}
 
