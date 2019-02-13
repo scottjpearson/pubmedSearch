@@ -287,6 +287,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 						$citation .= ". ";
 					}
 					$citation .= $title.". ".$journal.". ".$date.";".$journalIssue.". ".$pmc.$pubmed.".";
+					error_log("PubmedSearchExternalModule citation: ".$citation);
 					$citations[] = $citation;
 				}
 			}
