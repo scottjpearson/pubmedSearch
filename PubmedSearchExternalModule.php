@@ -101,7 +101,8 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 			$row = self::getPubMed(	$values[$firstName],
 						$values[$lastName],
 						$institutions[$values[$recordId]],
-						json_decode($values[$helper]),
+						array(),
+						// json_decode($values[$helper]),
 						$values[$citations],
 						$citations,
 						$helper);
