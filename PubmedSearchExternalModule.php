@@ -139,7 +139,10 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		foreach($lastNamesIntermediate as $thisLastName) {
 			$thisLastName = preg_replace("/^\(/", "", $thisLastName);
 			$thisLastName = preg_replace("/\)$/", "", $thisLastName);
-			$lastNames[] = strtolower($thisLastName);
+			$thisLastName = strtolower($thisLastName);
+			if (!in_array($thisLastName, $lastNames)) {
+				$lastNames[] = strtolower($thisLastName);
+			}
 		}
 
 		$firstNames = preg_split("/[\s\-]+/", strtolower($firstName));
