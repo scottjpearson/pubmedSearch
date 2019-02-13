@@ -82,7 +82,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 				foreach ($fields as $field) {
 					if ($row[$field]) {
 						if (in_array($field, $institutionFields)) {
-							$institutions[$id] = $row[$field];
+							array_push($institutions[$id], $row[$field]);
 						} else {
 							$ary[$field] = $row[$field];
 						}
@@ -100,7 +100,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		foreach ($names as $values) {
 			$row = self::getPubMed(	$values[$firstName],
 						$values[$lastName],
-						$institutions[$id],
+						$institutions[$values[$recordId]],
 						json_decode($values[$helper]),
 						$values[$citations],
 						$citations,
@@ -123,8 +123,6 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 	}
 
 	public static function getPubMed($firstName, $lastName, $institutions, $prevCitations, $citationsStr, $citationField, $citationIdField) {
-		$redcapData = json_decode($output, true);
-	
 		$cs = explode("\n", $citationsStr);
 		$citations = array();
 		foreach ($cs as $c) {
