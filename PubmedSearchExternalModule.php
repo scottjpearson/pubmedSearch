@@ -135,7 +135,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		$total = 0;
 		$totalNew = 0;
 		$lastNamesIntermediate = preg_split("/\s*[\s\-]\s*/", strtolower($lastName));
-		$lastNames = array($lastName);
+		$lastNames = array(strtolower($lastName));
 		foreach($lastNamesIntermediate as $thisLastName) {
 			$thisLastName = preg_replace("/^\(/", "", $thisLastName);
 			$thisLastName = preg_replace("/\)$/", "", $thisLastName);
@@ -144,7 +144,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 
 		$firstNames = preg_split("/[\s\-]+/", strtolower($firstName));
 		if (!in_array($firstName, $firstNames)) {
-			array_push($firstNames, $firstName);
+			array_push($firstNames, strtolower($firstName));
 		}
 		$firstInitials = array();
 		$i = 0;
