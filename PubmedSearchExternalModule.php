@@ -207,7 +207,6 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		}
 		$total += count($pmids);
 		$totalNew += count($pmidsUnique);
-		error_log("PubmedSearchExternalModule Got ".count($pmids)." pmids and ".count($pmidsUnique)." unique; prevCitations ".json_encode($prevCitations));
 	
 		$citations = array();
 		if (!empty($pmidsUnique)) {
@@ -231,7 +230,6 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 				$output = curl_exec($ch);
 				curl_close($ch);
 				sleep(SLEEP_TIME);
-				error_log("PubmedSearchExternalModule output1 ".$output);
 				$data = json_decode($output, true);
 	
 				# indexed by PMID
@@ -254,7 +252,6 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 				curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
 				$output = curl_exec($ch);
 				curl_close($ch);
-				error_log("PubmedSearchExternalModule output2 ".$output);
 				$xml = simplexml_load_string(utf8_encode($output));
 				if (!$xml) {
 					throw new \Exception("Error: Cannot create object (".json_encode($output).") from ".$url);
@@ -292,7 +289,6 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 						$citation .= ". ";
 					}
 					$citation .= $title.". ".$journal.". ".$date.";".$journalIssue.". ".$pmc.$pubmed.".";
-					error_log("PubmedSearchExternalModule citation: ".$citation);
 					$citations[] = $citation;
 				}
 			}
@@ -302,7 +298,6 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 					$citationIdField => self::json_encode_with_spaces($newCitationIds),
 					$citationField => implode("\n", $citations),
 				);
-		error_log("PubmedSearchExternalModule returning ".json_encode($uploadRow));
 		return $uploadRow;
 	}
 
