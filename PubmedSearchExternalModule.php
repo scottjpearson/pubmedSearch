@@ -134,9 +134,12 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		$upload = array();
 		$total = 0;
 		$totalNew = 0;
-		$lastNames = preg_split("/\s*[\s\-]\s*/", strtolower($lastName));
-		if (count($lastNames) > 1) {
-			$lastNames[] = strtolower($lastName);
+		$lastNamesIntermediate = preg_split("/\s*[\s\-]\s*/", strtolower($lastName));
+		$lastNames = array($lastName);
+		foreach($lastNamesIntermediate as $thisLastName) {
+			$thisLastName = preg_replace("/^\(/", "", $thisLastName);
+			$thisLastName = preg_replace("/\)$/", "", $thisLastName);
+			$lastNames[] = strtolower($thisLastName);
 		}
 
 		$firstNames = preg_split("/[\s\-]+/", strtolower($firstName));
