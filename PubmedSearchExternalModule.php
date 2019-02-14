@@ -82,7 +82,10 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 				foreach ($fields as $field) {
 					if ($row[$field]) {
 						if (in_array($field, $institutionFields)) {
-							array_push($institutions[$id], $row[$field]);
+							$myInstitutions = preg_split("/\s*[,\n]\s*/", $row[$field]);
+							foreach ($myInstitutions as $institution) {
+								array_push($institutions[$id], $institution);
+							}
 						} else {
 							$ary[$field] = $row[$field];
 						}
