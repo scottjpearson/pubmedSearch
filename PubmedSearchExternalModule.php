@@ -209,7 +209,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 	
 		$citations = array();
 		if (!empty($pmidsUnique)) {
-			$pullSize = 1;
+			$pullSize = 10;
 			for ($i = 0; $i < count($pmidsUnique); $i += $pullSize) {
 				$pmidsUniqueForPull = array();
 				for ($j = $i; $j < count($pmidsUnique) && $j < $i + $pullSize; $j++) {
