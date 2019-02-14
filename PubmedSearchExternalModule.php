@@ -251,6 +251,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 				curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
 				$output = curl_exec($ch);
 				curl_close($ch);
+				sleep(SLEEP_TIME);
 				$xml = simplexml_load_string(utf8_encode($output));
 				if (!$xml) {
 					throw new \Exception("Error: Cannot create object (".json_encode($output).") from ".$url);
