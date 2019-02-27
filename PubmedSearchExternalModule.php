@@ -83,7 +83,10 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 				foreach ($fields as $field) {
 					if ($row[$field]) {
 						if (in_array($field, $institutionFields)) {
-							array_push($institutions[$id], $row[$field]);
+							$myInstitutions = preg_split("/\s*[,\n]\s*/", $row[$field]);
+							foreach ($myInstitutions as $institution) {
+								array_push($institutions[$id], $institution);
+							}
 						} else {
 							$ary[$field] = $row[$field];
 						}
@@ -101,7 +104,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		foreach ($names as $values) {
 			$row = self::getPubMed(	$values[$firstName],
 						$values[$lastName],
-						$institutions[$id],
+						$institutions[$values[$recordId]],
 						json_decode($values[$helper]),
 						$values[$citations],
 						$citations,
@@ -124,8 +127,6 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 	}
 
 	public static function getPubMed($firstName, $lastName, $institutions, $prevCitations, $citationsStr, $citationField, $citationIdField) {
-		$redcapData = json_decode($output, true);
-	
 		$cs = explode("\n", $citationsStr);
 		$citations = array();
 		foreach ($cs as $c) {
@@ -137,14 +138,20 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		$upload = array();
 		$total = 0;
 		$totalNew = 0;
-		$lastNames = preg_split("/\s*[\s\-]\s*/", strtolower($lastName));
-		if (count($lastNames) > 1) {
-			$lastNames[] = strtolower($lastName);
+		$lastNamesIntermediate = preg_split("/\s*[\s\-]\s*/", strtolower($lastName));
+		$lastNames = array(strtolower($lastName));
+		foreach($lastNamesIntermediate as $thisLastName) {
+			$thisLastName = preg_replace("/^\(/", "", $thisLastName);
+			$thisLastName = preg_replace("/\)$/", "", $thisLastName);
+			$thisLastName = strtolower($thisLastName);
+			if (!in_array($thisLastName, $lastNames)) {
+				$lastNames[] = strtolower($thisLastName);
+			}
 		}
 
 		$firstNames = preg_split("/[\s\-]+/", strtolower($firstName));
 		if (!in_array($firstName, $firstNames)) {
-			array_push($firstNames, $firstName);
+			array_push($firstNames, strtolower($firstName));
 		}
 		$firstInitials = array();
 		$i = 0;
@@ -206,7 +213,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 	
 		$citations = array();
 		if (!empty($pmidsUnique)) {
-			$pullSize = 1;
+			$pullSize = 10;
 			for ($i = 0; $i < count($pmidsUnique); $i += $pullSize) {
 				$pmidsUniqueForPull = array();
 				for ($j = $i; $j < count($pmidsUnique) && $j < $i + $pullSize; $j++) {
