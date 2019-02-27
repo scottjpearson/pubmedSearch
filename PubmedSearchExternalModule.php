@@ -5,6 +5,7 @@ use ExternalModules\AbstractExternalModule;
 use ExternalModules\ExternalModules;
 
 define('SLEEP_TIME', 1);
+define('MAX_RETRIES', 5);
 
 class PubmedSearchExternalModule extends AbstractExternalModule
 {
@@ -235,21 +236,26 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 					}
 				}
 				
-				$url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&retmode=xml&id=".implode(",", $pmidsUniqueForPull);
-				$ch = curl_init();
-				curl_setopt($ch, CURLOPT_URL, $url);
-				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-				curl_setopt($ch, CURLOPT_VERBOSE, 0);
-				curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-				curl_setopt($ch, CURLOPT_AUTOREFERER, true);
-				curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
-				curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
-				$output = curl_exec($ch);
-				curl_close($ch);
-				$xml = simplexml_load_string(utf8_encode($output));
+				$retry = 0;
+				do {
+					$url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&retmode=xml&id=".implode(",", $pmidsUniqueForPull);
+					$ch = curl_init();
+					curl_setopt($ch, CURLOPT_URL, $url);
+					curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+					curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+					curl_setopt($ch, CURLOPT_VERBOSE, 0);
+					curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+					curl_setopt($ch, CURLOPT_AUTOREFERER, true);
+					curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
+					curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
+					$output = curl_exec($ch);
+					curl_close($ch);
+					$xml = simplexml_load_string(utf8_encode($output));
+					sleep(SLEEP_TIME);
+					$retry++;
+				} while (!$xml && ($retry < MAX_RETRIES));
 				if (!$xml) {
-					throw new \Exception("Error: Cannot create object (".json_encode($output).") from ".$url);
+					throw new \Exception("Error: After ".MAX_RETRIES." retries, cannot create object (".json_encode($output).") from ".$url);
 				}
 				foreach ($xml->PubmedArticle as $medlineCitation) {
 					$article = $medlineCitation->MedlineCitation->Article;
@@ -264,7 +270,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 								$authors[] = $authorXML->CollectiveName;
 							}
 						}
-					} 
+					}
 					$title = preg_replace("/\.$/", "", $article->ArticleTitle);
 					$journal = preg_replace("/\.$/", "", $article->Journal->ISOAbbreviation);
 					$issue = $article->Journal->JournalIssue;
