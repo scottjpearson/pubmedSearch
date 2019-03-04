@@ -149,18 +149,18 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 			}
 		}
 
-		$firstNames = preg_split("/[\s\-]+/", strtolower($firstName));
-		if (!in_array($firstName, $firstNames)) {
-			array_push($firstNames, strtolower($firstName));
-		}
-		$firstInitials = array();
-		$i = 0;
-		foreach ($firstNames as $firstName) {
-			$firstName = preg_replace("/^\(/", "", $firstName);
-			$firstName = preg_replace("/\)$/", "", $firstName);
-			$firstNames[$i] = $firstName;
-			$firstInitials[] = substr($firstName, 0, 1);
-			$i++;
+		if (preg_match("/\s\(/", strtolower($firstName))) {
+			# nickname in parentheses
+			$namesWithFormatting = preg_split("/\s\(/", strtolower($firstName));
+			$firstNames = array();
+			foreach ($namesWithFormatting as $formattedFirstName) {
+				$firstName = preg_replace("/\)$/", "", $formattedFirstName);
+				$firstName = preg_replace("/\s+/", "+", $firstName);
+				array_push($firstNames, $firstName);
+			}
+		} else {
+			# specified full name => search as group
+			$firstNames = array(preg_replace("/\s+/", "+", $firstName));
 		}
 
 		$pmids = array();

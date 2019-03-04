@@ -84,8 +84,9 @@
 			"cron_name": "pubmed_cron",
 			"cron_description": "PubMed Cron",
 			"method": "pubmed",
-			"cron_frequency": "604800",
-			"cron_max_run_time": "14400"
+			"cron_minute": 13,
+			"cron_weekday": 5,
+			"cron_hour": 19
 		}
 	]
 }
