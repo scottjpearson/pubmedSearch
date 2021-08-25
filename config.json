@@ -10,22 +10,50 @@
 			"name": "Scott J. Pearson",
 			"email": "datacore@vumc.org",
 			"institution": "Vanderbilt University Medical Center"
+		},
+		{
+			"name": "Andy Martin",
+			"email": "andy123@stanford.edu",
+			"institution": "Stanford University"
+		},
+		{
+			"name": "Jae Lee",
+			"email": "jael@stanford.edu",
+			"institution": "Stanford University"
+		},
+		{
+			"name": "Devin Cowan",
+			"email": "devin.r.cowan@dartmouth.edu",
+			"institution": "Dartmouth College"
 		}
 	],
+	"framework-version": 5,
 
-	
 	"permissions": [
+		"redcap_data_entry_form_top",
+		"hook_survey_page_top"
 	],
+
+	"no-auth-pages":["ajax"],
 
 	"links": {
 		"project": [
-	    		{
-				"name": "Test",
+			{
+				"name": "Test Pubmedsearch",
 				"icon": "report",
-				"url": "test3.php"
-	    		}
-    		]
+				"url": "ajax.php"
+			}
+		]
 	},
+
+	"system-settings": [
+		{
+			"key": "enable-system-debug-logging",
+			"name": "<b>Enable Debug Logging (system-wide)</b><i>(optional)</i> Requires installation and configuration of emLogger",
+			"required": false,
+			"type": "checkbox"
+		}
+	],
 
 	"project-settings": [
 		{
@@ -76,9 +104,32 @@
 			"required": true,
 			"repeatable": true,
 			"type": "field-list"
+		},
+		{
+			"key": "edit-citations",
+			"name": "<b>Make citations fields editable</b><br>By default, the fields marked as read-only to reduce confusion",
+			"required": false,
+			"type": "checkbox"
+		},
+		{
+			"key": "enable-cron",
+			"name": "<b>Enable CRON</b><br>By default, cron jobs are not enabled. If you enable, pubmed citations will be fetched on the backend at a regular interval and users will not be able to modify them.",
+			"required": false,
+			"type": "checkbox"
+		},
+		{
+			"key": "enable-project-debug-logging",
+			"name": "<b>Enable Debug Logging</b><br><i>(optional)</i> Requires installation and configuration of emLogger",
+			"required": false,
+			"type": "checkbox"
+		},
+		{
+			"key": "enable-js-debug",
+			"name": "<b>Enable javascript debugging</b>",
+			"required": false,
+			"type": "checkbox"
 		}
 	],
-
 	"crons": [
 		{
 			"cron_name": "pubmed_cron",
