@@ -4,27 +4,34 @@ namespace Vanderbilt\PubmedSearchExternalModule;
 use ExternalModules\AbstractExternalModule;
 use ExternalModules\ExternalModules;
 
+use \REDCap as REDCap;
+require_once("emLoggerTrait.php");
+
 define('SLEEP_TIME', 1);
 define('MAX_RETRIES', 5);
 
 class PubmedSearchExternalModule extends AbstractExternalModule
 {
 	public function getPids() {
-	       $sql="SELECT DISTINCT(s.project_id) AS project_id FROM redcap_external_modules m, redcap_external_module_settings s INNER JOIN redcap_projects AS p ON p.project_id = s.project_id WHERE p.date_deleted IS NULL AND m.external_module_id = s.external_module_id AND s.value = 'true' AND m.directory_prefix = 'pubmedSearch' AND s.`key` = 'enabled'";
-	       $q = db_query($sql);
+		$sql="SELECT DISTINCT(s.project_id) AS project_id FROM redcap_external_modules m, redcap_external_module_settings s INNER JOIN redcap_projects AS p ON p.project_id = s.project_id WHERE p.date_deleted IS NULL AND m.external_module_id = s.external_module_id AND s.value = 'true' AND m.directory_prefix = 'pubmed_search' AND s.`key` = 'enabled'";
+		$q = db_query($sql);
 
-	       if ($error = db_error()) {
-		      error_log("PubmedSearchExternalModule ERROR: $error");
-	       }
+		if ($error = db_error()) {
+			error_log("PubmedSearchExternalModule ERROR: $error");
+		}
 
-	       $pids = array();
-	       while ($row = db_fetch_assoc($q)) {
-		      $pids[] = $row['project_id'];
-	       }
-	       return $pids;
+		$pids = array();
+		while ($row = db_fetch_assoc($q)) {
+			$pids[] = $row['project_id'];
+		}
+		return $pids;
 	}
 
 	public function pubmed() {
+		// check if cron is enabled in settings
+		if( ! $this->getProjectSetting('enable-cron')){
+			return;
+		}
 		$pids = $this->getPids();
 		error_log("PubmedSearchExternalModule::pubmed with ".json_encode($pids));
 		foreach ($pids as $pid) {
@@ -32,7 +39,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		}
 	}
 
-	public function pubmedRun($pid) {
+	public function pubmedRun($pid, $specific_record=null) {
 		error_log("PubmedSearchExternalModule::pubmedRun with $pid");
 		# field names
 		$firstName = $this->getProjectSetting("first_name", $pid);
@@ -56,8 +63,11 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 				array_push($fields, $institutionField);
 			}
 		}
-
-		$json = \REDCap::getData($pid, "json", NULL, $fields);
+		if (is_null($specific_record)){
+			$json = \REDCap::getData($pid, "json", NULL, $fields);
+		}else{
+			$json = \REDCap::getData($pid, "json", [$specific_record['record_id']], $fields);
+		}
 		$data = json_decode($json, true);
 
 		# organize the data
@@ -102,31 +112,69 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		# process the data
 		$upload = array();
 		foreach ($names as $values) {
-			$row = self::getPubMed(	$values[$firstName],
-						$values[$lastName],
-						$institutions[$values[$recordId]],
-						json_decode($values[$helper]),
-						$values[$citations],
-						$citations,
-						$helper);
+			if (is_null($specific_record)){
+				$row = self::getPubMed(	$values[$firstName],
+				$values[$lastName],
+				$institutions[$values[$recordId]],
+				json_decode($values[$helper]),
+				$values[$citations],
+				$citations,
+				$helper);
+			}else{
+				$inst = $institutions[$values[$recordId]];
+				if (! in_array($specific_record['institution'], $inst)){
+					$inst[] = $specific_record['institution'];
+				}
+				$row = self::getPubMed(
+					$specific_record['first'],
+					$specific_record['last'],
+					$inst,
+					json_decode($values[$helper]),
+					$values[$citations],
+					$citations,
+					$helper, true);
+				}
 
-			if ($row && $row[$helper] && $row[$citations]) {
-				array_push($upload, array(	$recordId => $values[$recordId],
-								$helper => $row[$helper],
-								$citations => $row[$citations],
-								$citationsCount => count(explode("\n", $row[$citations])),
-							));
+				if ($row && $row[$helper] && $row[$citations]) {
+					array_push($upload, array(	$recordId => $values[$recordId],
+					$helper => $row[$helper],
+					$citations => $row[$citations],
+					$citationsCount => count(explode("\n", $row[$citations])),
+				));
 			}
 		}
 		error_log("PubmedSearchExternalModule upload: ".count($upload)." rows");
 
-		if (!empty($upload)) {
-			$feedback = \REDCap::saveData($pid, "json", json_encode($upload));
-			error_log("PubmedSearchExternalModule upload: ".json_encode($feedback));
+		// if it's a brand new redcap record, recordid will be null, so will $names
+		if(!is_null($specific_record) && is_null($specific_record['record_id'])){
+			$row = self::getPubMed(
+				$specific_record['first'],
+				$specific_record['last'],
+				$specific_record['institution'],
+				"",
+				"",
+				$citations,
+				$helper,
+				true);
+				if ($row && $row[$helper] && $row[$citations]) {
+					array_push($upload, array(	$recordId => $values[$recordId],
+					$helper => $row[$helper],
+					$citations => $row[$citations],
+					$citationsCount => count(explode("\n", $row[$citations])),
+				));
+			}
 		}
+
+		if (!empty($upload)) {
+			if (is_null($specific_record) && $this->getProjectSetting('enable-cron')){
+				$feedback = \REDCap::saveData($pid, "json", json_encode($upload));
+				error_log("PubmedSearchExternalModule upload: ".json_encode($feedback));
+			}
+		}
+		return json_encode($upload);
 	}
 
-	public static function getPubMed($firstName, $lastName, $institutions, $prevCitations, $citationsStr, $citationField, $citationIdField) {
+	public static function getPubMed($firstName, $lastName, $institutions, $prevCitations, $citationsStr, $citationField, $citationIdField, $deltas=false) {
 		$cs = explode("\n", $citationsStr);
 		$citations = array();
 		foreach ($cs as $c) {
@@ -134,7 +182,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 				array_push($citations, $c);
 			}
 		}
-	
+
 		$upload = array();
 		$total = 0;
 		$totalNew = 0;
@@ -181,15 +229,15 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 					$output = curl_exec($ch);
 					curl_close($ch);
 					sleep(SLEEP_TIME);
-	
+
 					$pmData = json_decode($output, true);
 					if ($pmData['esearchresult'] && $pmData['esearchresult']['idlist']) {
 						# if the errorlist is not blank, it might search for simplified
 						# it might search for simplified names and produce bad results
 						if (!isset($pmData['esearchresult']['errorlist'])
-							|| !$pmData['esearchresult']['errorlist']
-							|| !$pmData['esearchresult']['errorlist']['phrasesnotfound']
-							|| empty($pmData['esearchresult']['errorlist']['phrasesnotfound'])) {
+						|| !$pmData['esearchresult']['errorlist']
+						|| !$pmData['esearchresult']['errorlist']['phrasesnotfound']
+						|| empty($pmData['esearchresult']['errorlist']['phrasesnotfound'])) {
 							foreach ($pmData['esearchresult']['idlist'] as $pmid) {
 								if (!in_array($pmid, $pmids)) {
 									$pmids[] = $pmid;
@@ -210,7 +258,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		}
 		$total += count($pmids);
 		$totalNew += count($pmidsUnique);
-	
+
 		$citations = array();
 		if (!empty($pmidsUnique)) {
 			$pullSize = 10;
@@ -234,7 +282,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 				curl_close($ch);
 				sleep(SLEEP_TIME);
 				$data = json_decode($output, true);
-	
+
 				# indexed by PMID
 				$pmcids = array();
 				foreach ($data['records'] as $record) {
@@ -242,7 +290,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 						$pmcids[$record['pmid']] = $record['pmcid'];
 					}
 				}
-				
+
 				$retry = 0;
 				do {
 					$url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&retmode=xml&id=".implode(",", $pmidsUniqueForPull);
@@ -301,11 +349,19 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 				}
 			}
 		}
-		$newCitationIds = array_merge($prevCitations, $pmidsUnique);
-		$uploadRow = array(
-					$citationIdField => self::json_encode_with_spaces($newCitationIds),
-					$citationField => implode("\n", $citations),
-				);
+		//
+		if (! $deltas){
+			$newCitationIds = array_merge($prevCitations, $pmidsUnique);
+			$uploadRow = array(
+				$citationIdField => self::json_encode_with_spaces($newCitationIds),
+				$citationField => implode("\n", $citations),
+			);
+		}else{
+			$uploadRow = array(
+				$citationIdField => json_encode($pmidsUnique),
+				$citationField => json_encode($citations),
+			);
+		}
 		return $uploadRow;
 	}
 
@@ -313,5 +369,128 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		$str = json_encode($data);
 		$str = preg_replace("/,/", ", ", $str);
 		return $str;
+	}
+
+	// THESE FUNCTIONS BORROWED FROM LOOKUP ASSISTANT
+	public $errors = array();
+	public $settings = array();
+
+	private function validateJson($contents) {
+		// // Verify file exists
+		// if (file_exists($path)) {
+		//     $contents = file_get_contents($path);
+
+		// Verify contents are json
+		$obj = json_decode($contents);
+
+		if (json_last_error() == JSON_ERROR_NONE) {
+			// All good
+			return $contents;
+		} else {
+			$this->emError("Error decoding JSON", json_last_error_msg());
+			return false;
+			// $this->errors[] = "Error decoding path $path: " . json_last_error_msg();
+		}
+
+		// } else {
+		//     $this->errors[] = "Unable to locate file $path";
+		// }
+		// return false;
+	}
+
+
+	// Take the project settings and convert them into a more friendly settings object to pass to javascript
+	public function loadSettings($instrument) {
+		$set = $this->getProjectSettings();
+		$set['module-path'] = $this->getPostURL();
+		$set['test-path'] = $this->getTestURL();
+		$set['record_id'] = $this->getRecordId();
+		$this->settings[] = $set;
+	}
+
+	function injectLookup($instrument)
+	{
+		$this->loadSettings($instrument);
+		if (!empty($this->errors)) {
+			$this->emDebug($this->errors);
+			return false;
+		}
+
+		// Skip out if there is nothing to do
+		if (empty($this->settings)) return false;
+
+		// DUMP CONTENTS TO JAVASCRIPT
+		// Append the select2 controls
+		$this->insertSelect2();
+
+		echo "<style type='text/css'>" . $this->dumpResource("css/lookup-assistant.css") . "</style>";
+
+		// // Insert our custom JS
+		echo "<script type='text/javascript'>" . $this->dumpResource("js/lookupAssistant.js") . "</script>";
+
+		// Insert our custom JS
+		echo "<script type='text/javascript'>lookupAssistant.settings = " . json_encode($this->settings) . "</script>";
+		echo "<script type='text/javascript'>lookupAssistant.jsDebug = " . json_encode($this->getProjectSetting('enable-js-debug')) . "</script>";
+		?>
+		<style>
+		.lookupIcon {
+			position: absolute;
+		}
+		.lookupIcon > span {
+			position: relative;
+			left: -20px;
+			cursor: pointer;
+		}
+		</style>
+		<?php
+	}
+
+
+	function redcap_data_entry_form_top($project_id, $record, $instrument, $event_id, $group_id)
+	{
+		if( ! $this->getProjectSetting('enable-cron')){
+			$this->injectLookup($instrument);
+		}
+	}
+
+
+	function redcap_survey_page_top($project_id, $record, $instrument, $event_id, $group_id)
+	{
+		if( ! $this->getProjectSetting('enable-cron')){
+			$this->injectLookup($instrument);
+		}
+	}
+
+
+	public function insertSelect2()
+	{
+		?>
+		<script type="text/javascript"><?php echo $this->dumpResource('js/select2.full.min.js'); ?></script>
+		<style><?php echo $this->dumpResource('css/select2.min.css'); ?></style>
+		<style><?php echo $this->dumpResource('css/select2-bootstrap.min.css'); ?></style>
+		<?php
+	}
+
+
+	public function dumpResource($name)
+	{
+		$file = $this->getModulePath() . $name;
+		if (file_exists($file)) {
+			$contents = file_get_contents($file);
+			return $contents;
+		} else {
+			$this->emError("Unable to find $file");
+		}
+	}
+
+	public function getPostURL(){
+		return $this->getUrl("ajax.php", false, false);
+		// return $this->getUrl("PubmedSearchExternalModule.php", false, false);
+		// return $this->getModulePath();
+	}
+	public function getTestURL(){
+		return $this->getUrl("test.xml", false, false);
+		// return $this->getUrl("PubmedSearchExternalModule.php", false, false);
+		// return $this->getModulePath();
 	}
 }
