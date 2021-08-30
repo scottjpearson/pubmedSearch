@@ -29,7 +29,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 
 	public function pubmed() {
 		// check if cron is enabled in settings
-		if( ! $this->settings['enable-cron']){
+		if( ! $this->getProjectSetting('enable-cron')){
 			return;
 		}
 		$pids = $this->getPids();
@@ -166,7 +166,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 		}
 
 		if (!empty($upload)) {
-			if (is_null($specific_record) && $this->settings['enable-cron']){
+			if (is_null($specific_record) && $this->getProjectSetting('enable-cron')){
 				$feedback = \REDCap::saveData($pid, "json", json_encode($upload));
 				error_log("PubmedSearchExternalModule upload: ".json_encode($feedback));
 			}
@@ -448,7 +448,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 
 	function redcap_data_entry_form_top($project_id, $record, $instrument, $event_id, $group_id)
 	{
-		if( ! $this->settings['enable-cron']){
+		if( ! $this->getProjectSetting('enable-cron')){
 			$this->injectLookup($instrument);
 		}
 	}
@@ -456,7 +456,7 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 
 	function redcap_survey_page_top($project_id, $record, $instrument, $event_id, $group_id)
 	{
-		if( ! $this->settings['enable-cron']){
+		if( ! $this->getProjectSetting('enable-cron')){
 			$this->injectLookup($instrument);
 		}
 	}
