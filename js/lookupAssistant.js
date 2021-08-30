@@ -63,11 +63,12 @@ lookupAssistant.mapJson = function(nested_json) {
 lookupAssistant.populateDropdown = function(citations) {
   $.each(citations, function(j, citation) {
     pmid = citation.split(":").slice(-1).pop().replace('.','');
+    title = citation.split(".")[1].replace('.','');
     lookupAssistant.log("Setting up level " + j, pmid);
     citation.level = j;
     lookupAssistant.sel.attr('id', 'select-' + j)
     .data('level', j)
-    .append(new Option(citation, pmid));
+    .append($(new Option(title, pmid)).data('fulltext', citation));
   });
 }
 
@@ -86,12 +87,10 @@ lookupAssistant.updatePubFields = function(select) {
   } else {
     // update citation strings
     existing = lookupAssistant.citations.text() || "";
-    // addition = $(select).value().split(/(?<=PMID:\s\d*\.)/).join("\n")
-    addition = $('.select-2-multi option:selected').toArray().map(item => item.text).join("\n");
+    addition = $('.select-2-multi option:selected').toArray().map(item => $(item).data('fulltext')).join("\n");
 
     existing = existing ? existing+"\n" : "";
     var t = lookupAssistant.citations
-    // need to parse so the format matches before filling...
     .val(existing+addition)
     .trigger('blur');
 
