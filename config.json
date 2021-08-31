@@ -36,16 +36,6 @@
 
 	"no-auth-pages":["ajax"],
 
-	"links": {
-		"project": [
-			{
-				"name": "Test Pubmedsearch",
-				"icon": "report",
-				"url": "ajax.php"
-			}
-		]
-	},
-
 	"system-settings": [
 		{
 			"key": "enable-system-debug-logging",

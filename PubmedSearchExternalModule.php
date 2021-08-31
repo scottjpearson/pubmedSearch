@@ -403,7 +403,6 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 	public function loadSettings($instrument) {
 		$set = $this->getProjectSettings();
 		$set['module-path'] = $this->getPostURL();
-		$set['test-path'] = $this->getTestURL();
 		$set['record_id'] = $this->getRecordId();
 		$this->settings[] = $set;
 	}
@@ -484,13 +483,6 @@ class PubmedSearchExternalModule extends AbstractExternalModule
 	}
 
 	public function getPostURL(){
-		return $this->getUrl("ajax.php", false, false);
-		// return $this->getUrl("PubmedSearchExternalModule.php", false, false);
-		// return $this->getModulePath();
-	}
-	public function getTestURL(){
-		return $this->getUrl("test.xml", false, false);
-		// return $this->getUrl("PubmedSearchExternalModule.php", false, false);
-		// return $this->getModulePath();
+		return $this->getUrl("ajax.php", true, false);
 	}
 }
